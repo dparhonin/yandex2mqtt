@@ -82,6 +82,11 @@ module.exports.action = [
 module.exports.unlink = [
   passport.authenticate('bearer', { session: true }),
   (request, response) => {
-  response.status(200);
+    console.log(request);
+    response.status(200);
+    var r = {
+      request_id: "1"
+    };
+    response.send(r);
   }
 ];
