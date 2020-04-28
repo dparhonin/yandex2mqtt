@@ -1,5 +1,6 @@
 'use strict';
 
+const debug = require('debug')('y2m.token')
 const tokens = {};
 const loki = require('lokijs');
 global.dbl = new loki('./loki.json', {
@@ -29,18 +30,17 @@ module.exports.findByUserIdAndClientId = (userId, clientId, done) => {
 };
 
 module.exports.save = (token, userId, clientId, done) => {
-  console.log('Start saving token');
+  debug('Start saving token');
   tokens[token] = { userId, clientId }; 
   var ltoken1 = global.authl.findOne( {'userId': userId} );
   if(ltoken1){
-    console.log(ltoken1.userId);
-    console.log('User Updated');
+    debug('User %s updated', ltoken1.userId);
     ltoken1.token = token;
     ltoken1.userId = userId;
     ltoken1.clientId = clientId;
     global.authl.update(ltoken1);
   }else{
-    console.log('User not Found. Create new...');
+    debug('User not found. Create new...');
     global.authl.insert({
         'type': 'token',
         'token': token,
@@ -54,13 +54,13 @@ module.exports.save = (token, userId, clientId, done) => {
 function loadTokenByUserId(userId, done) {
   var ltoken = global.authl.findOne( {'userId': userId} );
   if(ltoken){
-    console.log('Load token by userId: User found');
+    debug('User found, loading token by userId: %s', userId);
     var token = ltoken.token;
     var userId = ltoken.userId;
     var clientId = ltoken.clientId;
     tokens[token] = { userId, clientId };
   }else{
-    console.log('User not found');
+    debug('User not found for userId: %s', userId);
     return;
   }  
 };
@@ -68,13 +68,13 @@ function loadTokenByUserId(userId, done) {
 function loadToken(token, done) {
   var ltoken2 = global.authl.findOne( {'token': token} );
   if(ltoken2){
-    console.log('Token found');
+    debug('Token found');
     var token1 = ltoken2.token;
     var userId = ltoken2.userId;
     var clientId = ltoken2.clientId;
     tokens[token1] = { userId, clientId };
   }else{
-    console.log('Token not found');
+    debug('Token not found');
     return;
   }  
 };

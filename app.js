@@ -1,6 +1,7 @@
 'use strict';
 
 const express = require('express');
+const debug = require('debug')('y2m.app')
 const ejs = require('ejs');
 const path = require('path');
 const cookieParser = require('cookie-parser');
@@ -29,6 +30,8 @@ if (config.devices) {
         new device(opts);
     });
 }
+
+global.valueMappings = config.valueMappings
 
 const client = mqtt.connect(`mqtt://${config.mqtt.host}`, {
     port: config.mqtt.port,
@@ -74,8 +77,9 @@ app.get('/provider/v1.0/user/devices', routes.user.devices);
 app.post('/provider/v1.0/user/devices/query', routes.user.query);
 app.post('/provider/v1.0/user/devices/action', routes.user.action);
 app.post('/provider/v1.0/user/unlink', routes.user.unlink);
-httpsServer.listen(config.https.port);
 
+httpsServer.listen(config.https.port);
+debug("HTTPS server started on port %s", config.https.port);
 
 function findDevIndex(arr, elem) {
     for (var i = 0; i < arr.length; i++) {

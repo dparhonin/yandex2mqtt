@@ -1,3 +1,5 @@
+const debug = require('debug')('y2m-device');
+
 class device {
   constructor(options) {
     var id = global.devices.length;
@@ -19,7 +21,7 @@ class device {
   };
   
 
-  findDevIndex(arr, elem) {
+findDevIndex(arr, elem) {
     for (var i = 0; i < arr.length; i++) {
         if (arr[i].type === elem) {
             return i;
@@ -30,16 +32,24 @@ class device {
 
 
 
-  setState(val, type, inst) {
-    var int;   
-    var topic; 
+setState(val, type, inst) {
+    var mqttVal;
+    var topic;
+    var capabilityIndex = this.findDevIndex(this.data.capabilities, type);
+    var mqttIndex = this.findDevIndex(this.data.custom_data.mqtt, inst);
     switch (inst) {
       case 'on':
           try {
-            int = val ? '1' : '0';
-            this.data.capabilities[this.findDevIndex(this.data.capabilities, type)].state.instance = inst;
-            this.data.capabilities[this.findDevIndex(this.data.capabilities, type)].state.value = val;
-            topic = this.data.custom_data.mqtt[this.findDevIndex(this.data.custom_data.mqtt, inst)].set || false;
+            var valueMapping = this.data.custom_data.mqtt[mqttIndex].valueMapping || false;
+            debug("Using value mapping: %s", valueMapping);
+            if (valueMapping && global.valueMappings[valueMapping]) {
+                mqttVal = global.valueMappings[valueMapping][val];
+                debug("Value mapped: %s -> %s", val, mqttVal);
+            } else
+                mqttVal = val ? '1' : '0';
+            this.data.capabilities[capabilityIndex].state.instance = inst;
+            this.data.capabilities[capabilityIndex].state.value = val;
+            topic = this.data.custom_data.mqtt[mqttIndex].set || false;
             break; 
           } 
           catch (err) {              
@@ -48,10 +58,10 @@ class device {
           }
       case 'mute':
           try {
-            int = val ? '1' : '0';
-            this.data.capabilities[this.findDevIndex(this.data.capabilities, type)].state.instance = inst;
-            this.data.capabilities[this.findDevIndex(this.data.capabilities, type)].state.value = val;
-            topic = this.data.custom_data.mqtt[this.findDevIndex(this.data.custom_data.mqtt, inst)].set || false;
+            mqttVal = val ? '1' : '0';
+            this.data.capabilities[capabilityIndex].state.instance = inst;
+            this.data.capabilities[capabilityIndex].state.value = val;
+            topic = this.data.custom_data.mqtt[mqttIndex].set || false;
             break; 
           } 
           catch (err) {              
@@ -60,10 +70,10 @@ class device {
           }          
       default:
           try {
-            int = JSON.stringify(val);
-            this.data.capabilities[this.findDevIndex(this.data.capabilities, type)].state.instance = inst;
-            this.data.capabilities[this.findDevIndex(this.data.capabilities, type)].state.value = val;
-            topic = this.data.custom_data.mqtt[this.findDevIndex(this.data.custom_data.mqtt, inst)].set || false; 
+            mqttVal = JSON.stringify(val);
+            this.data.capabilities[capabilityIndex].state.instance = inst;
+            this.data.capabilities[capabilityIndex].state.value = val;
+            topic = this.data.custom_data.mqtt[mqttIndex].set || false;
           } 
           catch (err) {              
             topic = false;
@@ -72,7 +82,7 @@ class device {
     };
 
     if (topic) {
-      this.client.publish(topic, int);
+      this.client.publish(topic, mqttVal);
     }
     return [
       {
