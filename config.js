@@ -8,7 +8,7 @@ module.exports = {
     },
 
     https: {
-        privateKey: '/path/tp/privkey.pem',
+        privateKey: '/path/to/privkey.pem',
         certificate: '/path/to/fullchain.pem',
         port: 443
     },
