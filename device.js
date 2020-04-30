@@ -1,13 +1,21 @@
 const debug = require('debug')('y2m-device');
 
+function fixEncoding(str) {
+    str = ""+str;
+    if (str.includes('"'))
+        return str;
+    else
+        return eval('"'+str+'"');
+}
+
 class device {
   constructor(options) {
     var id = global.devices.length;
     this.data = {
       id: String(id),
-      name: options.name || 'Без названия',
-      description: options.description || '',
-      room: options.room || '',
+      name: fixEncoding(options.name) || 'Без названия',
+      description: fixEncoding(options.description) || '',
+      room: fixEncoding(options.room) || '',
       type: options.type || 'devices.types.light',
       custom_data: {
         mqtt: options.mqtt || [{}]
@@ -16,23 +24,23 @@ class device {
     }
     global.devices.push(this);
   }
+
   getInfo() {
     return this.data;
   };
-  
 
-findDevIndex(arr, elem) {
+  findDevIndex(arr, elem) {
     for (var i = 0; i < arr.length; i++) {
         if (arr[i].type === elem) {
             return i;
         }
     }
     return false;
-};
+  };
 
 
 
-setState(val, type, inst) {
+  setState(val, type, inst) {
     var mqttVal;
     var topic;
     var capabilityIndex = this.findDevIndex(this.data.capabilities, type);
