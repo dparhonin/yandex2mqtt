@@ -36,6 +36,8 @@ module.exports.devices = [
         r.payload.devices.push(global.devices[i].getInfo());
       }
 
+      debug("Devices response: "+r);
+
       response.status(200);
       response.send(r);
   }

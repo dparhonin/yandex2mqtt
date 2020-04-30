@@ -40,8 +40,6 @@ class device {
     return false;
   };
 
-
-
   setState(val, type, inst) {
     var mqttVal;
     var topic;
