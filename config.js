@@ -1,15 +1,15 @@
 module.exports = {
 
     mqtt: {
-        host: '192.168.1.132',
+        host: 'localhost',
         port: 1883,
-        user: 'mqtt',
-        password: 'mqtt'
+        user: '',
+        password: ''
     },
 
     https: {
-        privateKey: '/etc/letsencrypt/live/home.manoli.me/privkey.pem',
-        certificate: '/etc/letsencrypt/live/home.manoli.me/fullchain.pem',
+        privateKey: '/path/to/privkey.pem',
+        certificate: '/path/to/fullchain.pem',
         port: 443
     },
 
@@ -17,8 +17,8 @@ module.exports = {
         {
             id: '1',
             name: 'Yandex',
-            clientId: 'yandex-manoliHome',
-            clientSecret: '***REMOVED***',
+            clientId: 'yandex-client-id',
+            clientSecret: 'client-secret',
             isTrusted: false
         }
     ],

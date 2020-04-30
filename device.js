@@ -1,11 +1,13 @@
 const debug = require('debug')('y2m-device');
 
 function fixEncoding(str) {
-    str = ""+str;
-    if (str.includes('"'))
-        return str;
-    else
-        return eval('"'+str+'"');
+    if (str) {
+        str = ""+str;
+        if (str.includes('"'))
+            return str;
+        else
+            return eval('"'+str+'"');
+    }
 }
 
 class device {
