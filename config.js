@@ -1,5 +1,6 @@
 module.exports = {
     debug: "",
+    db_path: "./loki.json",
 
     mqtt: {
         host: 'localhost',

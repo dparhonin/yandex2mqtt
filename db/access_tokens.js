@@ -3,7 +3,8 @@
 const debug = require('debug')('y2m.token')
 const tokens = {};
 const loki = require('lokijs');
-global.dbl = new loki('./loki.json', {
+const config = require('../config');
+global.dbl = new loki(config.db_path, {
   autoload: true,
   autosave: true,
   autosaveInterval: 5000,
@@ -31,7 +32,7 @@ module.exports.findByUserIdAndClientId = (userId, clientId, done) => {
 
 module.exports.save = (token, userId, clientId, done) => {
   debug('Start saving token');
-  tokens[token] = { userId, clientId }; 
+  tokens[token] = { userId, clientId };
   var ltoken1 = global.authl.findOne( {'userId': userId} );
   if(ltoken1){
     debug('User %s updated', ltoken1.userId);
