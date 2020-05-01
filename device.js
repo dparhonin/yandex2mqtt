@@ -49,12 +49,16 @@ class device {
       case 'on':
           try {
             var valueMapping = this.data.custom_data.mqtt[mqttIndex].valueMapping || false;
-            debug("Using value mapping: %s", valueMapping);
             if (valueMapping && global.valueMappings[valueMapping]) {
+                debug("Using value mapping: %s", valueMapping);
                 mqttVal = global.valueMappings[valueMapping][val];
                 debug("Value mapped: %s -> %s", val, mqttVal);
-            } else
+            } else {
+                if (valueMapping) {
+                    debug("Config error: unknown value mapping: " + valueMapping);
+                }
                 mqttVal = val ? '1' : '0';
+            }
             this.data.capabilities[capabilityIndex].state.instance = inst;
             this.data.capabilities[capabilityIndex].state.value = val;
             topic = this.data.custom_data.mqtt[mqttIndex].set || false;
