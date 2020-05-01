@@ -2,11 +2,11 @@ const debug = require('debug')('y2m-device');
 
 function fixEncoding(str) {
     if (str) {
-        str = ""+str;
-        if (str.includes('"'))
+        str = "" + str;
+        if (str.includes('"')) //
             return str;
         else
-            return eval('"'+str+'"');
+            return eval('"' + str + '"');
     }
 }
 
@@ -90,6 +90,7 @@ class device {
     };
 
     if (topic) {
+      debug("MQTT publish: " + mqttVal + " -> " + topic)
       this.client.publish(topic, mqttVal);
     }
     return [
