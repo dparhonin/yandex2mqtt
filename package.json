@@ -1,12 +1,12 @@
 {
   "name": "yandex2mqtt",
-  "version": "0.2.0",
-  "repository": "https://github.com/munrexio/yandex2mqtt.git",
+  "version": "0.2.1",
+  "repository": "https://github.com/dparhonin/yandex2mqtt.git",
   "license": "MIT",
   "contributors": [
     {
-      "name": "Munrexio",
-      "url": "https://github.com/munrexio"
+      "name": "Dmitry Parkhonin",
+      "url": "https://github.com/dparhonin"
     }
   ],
   "scripts": {
