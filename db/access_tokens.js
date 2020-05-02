@@ -4,6 +4,7 @@ const debug = require('debug')('y2m.token')
 const tokens = {};
 const loki = require('lokijs');
 const config = require('../config');
+debug("Opening a Loki DB for " + config.db_path);
 global.dbl = new loki(config.db_path, {
   autoload: true,
   autosave: true,
