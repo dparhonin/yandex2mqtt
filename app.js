@@ -26,9 +26,7 @@ const httpsServer = https.createServer(credentials, app);
 global.devices = [];
 
 if (config.devices) {
-    config.devices.forEach(opts => {
-        new device(opts);
-    });
+    config.devices.forEach(opts => new device(opts));
 }
 
 global.valueMappings = config.valueMappings
@@ -81,149 +79,48 @@ app.post('/provider/v1.0/user/unlink', routes.user.unlink);
 httpsServer.listen(config.https.port);
 debug("HTTPS server started on port %s", config.https.port);
 
-function findDevIndex(arr, elem) {
-    for (var i = 0; i < arr.length; i++) {
-        if (arr[i].type === elem) {
-            return i;
-        }
-    }
-    return false;
-}
-
-
-const statPairs = [];
-
+const subscriptions = [];
 global.devices.forEach(device => {
     device.client = client;
-    device.data.custom_data.mqtt.forEach(mqtt => {
-        const statType = mqtt.type || false;
-        const statTopic = mqtt.stat || false;
-        if (statTopic && statType) {
-            statPairs.push({
+    const complexStateQueryTopic = device.data.complexState.query;
+    if (complexStateQueryTopic) {
+            subscriptions.push({
                 deviceId: device.data.id,
-                topic: statTopic,
-                topicType: statType
+                topic: complexStateQueryTopic
+            });
+    }
+    device.data.capabilities.forEach(capability => {
+        const queryTopic = capability.state.query || false;
+        if (queryTopic) {
+            subscriptions.push({
+                deviceId: device.data.id,
+                topic: queryTopic,
+                capabilityType: capability.type
             });
         }
     });
 });
 
-if (statPairs) {
-    client.on('connect', () => {
-        client.subscribe(statPairs.map(pair => pair.topic));
-        client.on('message', (topic, message) => {
-            const matchedDeviceId = statPairs.findIndex(pair => topic.toLowerCase() === pair.topic.toLowerCase());
-            if (matchedDeviceId == -1) return;
+client.on('connect', () => {
+    client.subscribe(subscriptions.map(pair => pair.topic), { "rh": true });
+    debug("MQTT client connected")
+});
+client.on('offline', () => {
+    debug("MQTT client disconnected")
+});
+client.on('message', (topic, message) => {
+    debug("MQTT message received on topic '" + topic + "': " + message);
+    const subscription = subscriptions.find(sub => topic.toLowerCase() === sub.topic.toLowerCase());
+    if (!subscription) return;
+    const device = global.devices.find(device => device.data.id == subscription.deviceId);
+    if (subscription.capabilityType) {
+        device.updateState(
+            subscription.capabilityType,
+            message.toString().toUpperCase()
+        );
+    } else {
+        device.updateComplexState(message);
+    }
+});
 
-            const device = global.devices.find(device => device.data.id == statPairs[matchedDeviceId].deviceId);
-            var devindx;
-            switch (statPairs[matchedDeviceId].topicType) {
-                case 'on':
-                    try {
-                        devindx = findDevIndex(device.data.capabilities, 'devices.capabilities.on_off')
-                        device.data.capabilities[devindx].state.instance = statPairs[matchedDeviceId].topicType;
-                        device.data.capabilities[devindx].state.value = ['on', '1', 'true'].includes(message.toString().toLowerCase());
-                    } catch (err) {
-                        console.log(err);
-                    }
-                    break;
-                case 'mute':
-                    try {
-                        devindx = findDevIndex(device.data.capabilities, 'devices.capabilities.toggle')
-                        device.data.capabilities[devindx].state.instance = statPairs[matchedDeviceId].topicType;
-                        device.data.capabilities[devindx].state.value = ['on', '1', 'true'].includes(message.toString().toLowerCase());
-                    } catch (err) {
-                        console.log(err);
-                    }
-                    break;
-                case 'hsv':
-                    try {
-                        devindx = findDevIndex(device.data.capabilities, 'devices.capabilities.color_setting')
-                        device.data.capabilities[devindx].state.instance = statPairs[matchedDeviceId].topicType;
-                        device.data.capabilities[devindx].state.value = JSON.parse(message);
-                    } catch (err) {
-                        console.log(err);
-                    }
-                    break;
-                case 'rgb':
-                    try {
-                        devindx = findDevIndex(device.data.capabilities, 'devices.capabilities.color_setting')
-                        device.data.capabilities[devindx].state.instance = statPairs[matchedDeviceId].topicType;
-                        device.data.capabilities[devindx].state.value = JSON.parse(message);
-                    } catch (err) {
-                        console.log(err);
-                    }
-                    break;
-                case 'temperature_k':
-                    try {
-                        devindx = findDevIndex(device.data.capabilities, 'devices.capabilities.color_setting')
-                        device.data.capabilities[devindx].state.instance = statPairs[matchedDeviceId].topicType;
-                        device.data.capabilities[devindx].state.value = JSON.parse(message);
-                    } catch (err) {
-                        console.log(err);
-                    }
-                    break;        
-                case 'thermostat':
-                    try {
-                        devindx = findDevIndex(device.data.capabilities, 'devices.capabilities.mode')
-                        device.data.capabilities[devindx].state.instance = statPairs[matchedDeviceId].topicType;
-                        device.data.capabilities[devindx].state.value = JSON.parse(message);
-                    } catch (err) {
-                        console.log(err);
-                    }
-                    break;
-                case 'fan_speed':
-                    try {
-                        devindx = findDevIndex(device.data.capabilities, 'devices.capabilities.mode')
-                        device.data.capabilities[devindx].state.instance = statPairs[matchedDeviceId].topicType;
-                        device.data.capabilities[devindx].state.value = JSON.parse(message);
-                    } catch (err) {
-                        console.log(err);
-                    }
-                    break;    
-                case 'brightness':
-                    try {
-                        devindx = findDevIndex(device.data.capabilities, 'devices.capabilities.range')
-                        device.data.capabilities[devindx].state.instance = statPairs[matchedDeviceId].topicType;
-                        device.data.capabilities[devindx].state.value = JSON.parse(message);
-                    } catch (err) {
-                        console.log(err);
-                    }
-                    break;
-                case 'temperature':
-                    try {
-                        devindx = findDevIndex(device.data.capabilities, 'devices.capabilities.range')
-                        device.data.capabilities[devindx].state.instance = statPairs[matchedDeviceId].topicType;
-                        device.data.capabilities[devindx].state.value = JSON.parse(message);
-                    } catch (err) {
-                        console.log(err);
-                    }
-                    break;
-                case 'volume':
-                    try {
-                        devindx = findDevIndex(device.data.capabilities, 'devices.capabilities.range')
-                        device.data.capabilities[devindx].state.instance = statPairs[matchedDeviceId].topicType;
-                        device.data.capabilities[devindx].state.value = JSON.parse(message);
-                    } catch (err) {
-                        console.log(err);
-                    }
-                    break;
-                case 'channel':
-                    try {
-                        devindx = findDevIndex(device.data.capabilities, 'devices.capabilities.range')
-                        device.data.capabilities[devindx].state.instance = statPairs[matchedDeviceId].topicType;
-                        device.data.capabilities[devindx].state.value = JSON.parse(message);
-                    } catch (err) {
-                        console.log(err);
-                    }
-                    break;                        
-                default:
-                    console.log('Unknown topic Type: ' + statPairs[matchedDeviceId].topicType);
-            };
-        });
-    });
-
-    client.on('offline', () => {
-    });
-}
 module.exports = app;
