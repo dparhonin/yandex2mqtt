@@ -10,8 +10,8 @@ module.exports = {
     },
 
     https: {
-        privateKey: '/etc/letsencrypt/live/home.manoli.me/privkey.pem',
-        certificate: '/etc/letsencrypt/live/home.manoli.me/fullchain.pem',
+        privateKey: '...',
+        certificate: '...',
         port: 443
     },
 
@@ -19,8 +19,8 @@ module.exports = {
         {
             id: '1',
             name: 'Yandex',
-            clientId: 'yandex-manoliHome',
-            clientSecret: '***REMOVED***',
+            clientId: '...',
+            clientSecret: '...',
             isTrusted: false
         }
     ],
@@ -29,7 +29,7 @@ module.exports = {
         {
             id: '1',
             username: 'admin',
-            password: 'admin',
+            password: '...',
             name: 'Administrator'
         }
     ],
