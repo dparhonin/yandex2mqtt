@@ -89,27 +89,73 @@ module.exports = {
         },
       ],
     },
-    {
-      name: 'Свет',
-      room: 'Спальня',
-      type: 'devices.types.light',
-      mqtt: [
-        {
-          type: 'devices.capabilities.on_off',
-          publish: 'yandex/devices/bedroomCeilingLamp/set',
-          query: 'yandex/devices/bedroomCeilingLamp/set',
-        },
-      ],
-      capabilities: [
-        {
-          type: 'devices.capabilities.on_off',
-          retrievable: true,
-          state: {
-            instance: 'on',
-            value: true,
-          },
-        },
-      ],
-    },
+      {
+          name: 'Свет',
+          room: 'Спальня',
+          type: 'devices.types.light',
+          capabilities: [
+              {
+                  type: 'devices.capabilities.on_off',
+                  retrievable: true,
+                  parameters: {
+                      split: false
+                  },
+                  state: {
+                      instance: 'on',
+                      value: false
+                  }
+              },
+              {
+                  type: 'devices.capabilities.range',
+                  retrievable: true,
+                  parameters: {
+                      instance: 'brightness',
+                      random_access: true,
+                      range: {
+                          min: 0,
+                          max: 100
+                      },
+                      unit: 'unit.percent'
+                  },
+                  state: {
+                      instance: 'brightness',
+                      value: 100
+                  }
+              },
+              {
+                  type: 'devices.capabilities.color_setting',
+                  retrievable: true,
+                  parameters: {
+                      temperature_k: {
+                          min: 2700,
+                          max: 6500
+                      }
+                  },
+                  state: {
+                      instance: 'temperature_k',
+                      value: 4500
+                  }
+              }
+          ],
+          complexState: {
+              publish: 'yandex/devices/bedroomCeilingLamp/set',
+              query: 'yandex/devices/bedroomCeilingLamp/get'
+          }
+      },
+      {
+          name: 'Телевизор',
+          room: 'Спальня',
+          type: 'devices.types.media_device.tv',
+          capabilities: [
+              {
+                  type: 'devices.capabilities.on_off',
+                  retrievable: false,
+                  state: {
+                      instance: 'on',
+                      publish: 'yandex/devices/tvset/set',
+                  },
+              },
+          ],
+      },
   ],
 };
