@@ -5,3 +5,4 @@ yarn-error.log
 .env
 /config_private.js
 /config_public.js
+/config_local.js

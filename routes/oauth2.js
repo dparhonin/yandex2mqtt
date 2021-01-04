@@ -1,10 +1,9 @@
-'use strict';
-
 const oauth2orize = require('@poziworld/oauth2orize');
 const passport = require('passport');
 const login = require('connect-ensure-login');
 const db = require('../db');
 const utils = require('../utils');
+const debug = require('debug')('y2m.oauth2');
 
 // Create OAuth 2.0 server
 const server = oauth2orize.createServer();
@@ -48,6 +47,7 @@ server.deserializeClient((id, done) => {
 server.grant(oauth2orize.grant.code((client, redirectUri, user, ares, done) => {
   const code = utils.getUid(16);
   db.authorizationCodes.save(code, client.id, redirectUri, user.id, user.username, (error) => {
+    debug('> Saving an auth code...');
     if (error) return done(error);
     return done(null, code);
   });
@@ -62,6 +62,7 @@ server.grant(oauth2orize.grant.code((client, redirectUri, user, ares, done) => {
 server.grant(oauth2orize.grant.token((client, user, ares, done) => {
   const token = utils.getUid(256);
   db.accessTokens.save(token, user.id, client.clientId, (error) => {
+    debug('> Saving a token...');
     if (error) return done(error);
     return done(null, token);
   });
@@ -75,6 +76,7 @@ server.grant(oauth2orize.grant.token((client, user, ares, done) => {
 // custom parameters by adding these to the `done()` call
 
 server.exchange(oauth2orize.exchange.code((client, code, redirectUri, done) => {
+  debug('> Exchanging code for a token...');
   db.authorizationCodes.find(code, (error, authCode) => {
     if (error) return done(error);
     if (client.id !== authCode.clientId) return done(null, false);
@@ -84,7 +86,7 @@ server.exchange(oauth2orize.exchange.code((client, code, redirectUri, done) => {
     db.accessTokens.save(token, authCode.userId, authCode.clientId, (error) => {
       if (error) return done(error);
       // Add custom params, e.g. the username
-      let params = { username: authCode.userName };
+      const params = { username: authCode.userName };
       // Call `done(err, accessToken, [refreshToken], [params])` to issue an access token
       return done(null, token, null, params);
     });
@@ -97,6 +99,7 @@ server.exchange(oauth2orize.exchange.code((client, code, redirectUri, done) => {
 // application issues an access token on behalf of the user who authorized the code.
 
 server.exchange(oauth2orize.exchange.password((client, username, password, scope, done) => {
+  debug('> Exchanging credentials for a token...');
   // Validate the client
   db.clients.findByClientId(client.clientId, (error, localClient) => {
     if (error) return done(error);
@@ -124,6 +127,7 @@ server.exchange(oauth2orize.exchange.password((client, username, password, scope
 // application issues an access token on behalf of the client who authorized the code.
 
 server.exchange(oauth2orize.exchange.clientCredentials((client, scope, done) => {
+  debug('> Exchanging client ID for a token...');
   // Validate the client
   db.clients.findByClientId(client.clientId, (error, localClient) => {
     if (error) return done(error);
@@ -169,14 +173,14 @@ module.exports.authorization = [
     });
   }, (client, user, done) => {
     // Check if grant request qualifies for immediate approval
-    
+
     // Auto-approve
     if (client.isTrusted) return done(null, true);
-    
+
     db.accessTokens.findByUserIdAndClientId(user.id, client.clientId, (error, token) => {
       // Auto-approve
       if (token) return done(null, true);
-      
+
       // Otherwise ask user
       return done(null, false);
     });
@@ -196,6 +200,7 @@ module.exports.authorization = [
 module.exports.decision = [
   login.ensureLoggedIn(),
   server.decision(),
+  (request, response) => { debug('**** 2 ****'); },
 ];
 
 

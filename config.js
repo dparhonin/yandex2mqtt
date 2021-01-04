@@ -1,159 +1,115 @@
 module.exports = {
-    debug: "y2m.*",
-    db_path: "./loki.json",
+  debug: '',
+  db_path: './loki.json',
 
-    mqtt: {
-        host: '192.168.1.132',
-        port: 1883,
-        user: 'mqtt',
-        password: 'mqtt'
+  mqtt: {
+    host: 'localhost',
+    port: 1883,
+    user: '',
+    password: '',
+  },
+
+  https: {
+    privateKey: '/path/to/privkey.pem',
+    certificate: '/path/to/fullchain.pem',
+    port: 8443,
+  },
+
+  clients: [
+    {
+      id: '1',
+      name: 'Yandex',
+      clientId: 'yandex-client-id',
+      clientSecret: 'client-secret',
+      isTrusted: false,
     },
+  ],
 
-    https: {
-        privateKey: '/etc/letsencrypt/live/home.manoli.me/privkey.pem',
-        certificate: '/etc/letsencrypt/live/home.manoli.me/fullchain.pem',
-        port: 443
+  users: [
+    {
+      id: '1',
+      username: 'admin',
+      password: 'admin',
+      name: 'Administrator',
     },
+  ],
 
-    clients: [
-        {
-            id: '1',
-            name: 'Yandex',
-            clientId: 'yandex-manoliHome',
-            clientSecret: '***REMOVED***',
-            isTrusted: false
-        }
-    ],
-
-    users: [
-        {
-            id: '1',
-            username: 'admin',
-            password: 'admin',
-            name: 'Administrator'
-        }
-    ],
-
-    valueMappings: {
-        "default": {
-            "true": "ON",
-            "false": "OFF",
-            "ON": "true",
-            "OFF": "false"
-        },
+  valueMappings: {
+    default: {
+      true: 'ON',
+      false: 'OFF',
+      ON: 'true',
+      OFF: 'false',
     },
+  },
 
-    devices: [
+  devices: [
+    {
+      name: 'Сервант',
+      room: 'Кухня',
+      type: 'devices.types.switch',
+      mqtt: [
         {
-            name: 'Сервант',
-            room: 'Кухня',
-            type: 'devices.types.switch',
-            capabilities: [
-                {
-                    type: 'devices.capabilities.on_off',
-                    retrievable: true,
-                    parameters: {
-                        split: false
-                    },
-                    state: {
-                        instance: 'on',
-                        value: false,
-                        publish: 'yandex/devices/servantBacklight/set',
-                        query: 'yandex/devices/servantBacklight/get',
-                        mappingRef: 'default'
-                    }
-                }
-            ]
+          type: 'devices.capabilities.on_off',
+          publish: 'zigbee2mqtt/0x00158d0003xxxxxx/set',
+          query: 'zigbee2mqtt/0x00158d0003xxxxxx/set',
+          valueMapRef: 'default',
         },
+      ],
+      capabilities: [
         {
-            name: 'Свет',
-            room: 'Прихожая',
-            type: 'devices.types.light',
-            capabilities: [
-                {
-                    type: 'devices.capabilities.on_off',
-                    retrievable: true,
-                    parameters: {
-                        split: false
-                    },
-                    state: {
-                        instance: 'on',
-                        value: false
-                    }
-                },
-            ],
-            complexState: {
-                publish: 'yandex/devices/hallCeilingLamp/set',
-                query: 'yandex/devices/hallCeilingLamp/get'
-            }
+          type: 'devices.capabilities.on_off',
+          retrievable: true,
+          state: {
+            instance: 'on',
+            value: true,
+          },
         },
+      ],
+    },
+    {
+      name: 'Свет',
+      room: 'Прихожая',
+      type: 'devices.types.light',
+      mqtt: [
         {
-            name: 'Свет',
-            room: 'Спальня',
-            type: 'devices.types.light',
-            capabilities: [
-                {
-                    type: 'devices.capabilities.on_off',
-                    retrievable: true,
-                    parameters: {
-                        split: false
-                    },
-                    state: {
-                        instance: 'on',
-                        value: false
-                    }
-                },
-                {
-                    type: 'devices.capabilities.range',
-                    retrievable: true,
-                    parameters: {
-                        instance: 'brightness',
-                        random_access: true,
-                        range: {
-                            min: 0,
-                            max: 100
-                        },
-                        unit: 'unit.percent'
-                    },
-                    state: {
-                        instance: 'brightness',
-                        value: 100
-                    }
-                },
-                {
-                    type: 'devices.capabilities.color_setting',
-                    retrievable: true,
-                    parameters: {
-                        temperature_k: {
-                            min: 2700,
-                            max: 6500
-                        }
-                    },
-                    state: {
-                        instance: 'temperature_k',
-                        value: 4500
-                    }
-                }
-            ],
-            complexState: {
-                publish: 'yandex/devices/bedroomCeilingLamp/set',
-                query: 'yandex/devices/bedroomCeilingLamp/get'
-            }
+          type: 'devices.capabilities.on_off',
+          publish: 'yandex/devices/hallCeilingLamp/set',
+          query: 'yandex/devices/hallCeilingLamp/set',
         },
+      ],
+      capabilities: [
         {
-            name: 'Телевизор',
-            room: 'Спальня',
-            type: 'devices.types.media_device.tv',
-            capabilities: [
-                {
-                    type: 'devices.capabilities.on_off',
-                    retrievable: false,
-                    state: {
-                        instance: 'on',
-                        publish: 'yandex/devices/tvset/set'
-                    }
-                }
-            ]
-        }
-    ]
-}
+          type: 'devices.capabilities.on_off',
+          retrievable: true,
+          state: {
+            instance: 'on',
+            value: true,
+          },
+        },
+      ],
+    },
+    {
+      name: 'Свет',
+      room: 'Спальня',
+      type: 'devices.types.light',
+      mqtt: [
+        {
+          type: 'devices.capabilities.on_off',
+          publish: 'yandex/devices/bedroomCeilingLamp/set',
+          query: 'yandex/devices/bedroomCeilingLamp/set',
+        },
+      ],
+      capabilities: [
+        {
+          type: 'devices.capabilities.on_off',
+          retrievable: true,
+          state: {
+            instance: 'on',
+            value: true,
+          },
+        },
+      ],
+    },
+  ],
+};

@@ -1,7 +1,7 @@
-'use strict';
+
 
 const express = require('express');
-const debug = require('debug')('y2m.app')
+const debug = require('debug')('y2m.app');
 const ejs = require('ejs');
 const path = require('path');
 const cookieParser = require('cookie-parser');
@@ -14,27 +14,29 @@ const config = require('./config');
 const mqtt = require('mqtt');
 const device = require('./device');
 const fs = require('fs');
+
 const app = express();
 const https = require('https');
+
 const privateKey = fs.readFileSync(config.https.privateKey, 'utf8');
 const certificate = fs.readFileSync(config.https.certificate, 'utf8');
 const credentials = {
-    key: privateKey,
-    cert: certificate
+  key: privateKey,
+  cert: certificate,
 };
 const httpsServer = https.createServer(credentials, app);
 global.devices = [];
 
 if (config.devices) {
-    config.devices.forEach(opts => new device(opts));
+  config.devices.forEach(opts => new device(opts));
 }
 
-global.valueMappings = config.valueMappings
+global.valueMappings = config.valueMappings;
 
 const client = mqtt.connect(`mqtt://${config.mqtt.host}`, {
-    port: config.mqtt.port,
-    username: config.mqtt.user,
-    password: config.mqtt.password
+  port: config.mqtt.port,
+  username: config.mqtt.user,
+  password: config.mqtt.password,
 });
 
 app.engine('ejs', ejs.__express);
@@ -43,22 +45,23 @@ app.set('views', path.join(__dirname, './views'));
 app.use(express.static('views'));
 app.use(cookieParser());
 app.use(bodyParser.json({
-    extended: false
+  extended: false,
 }));
 app.use(bodyParser.urlencoded({
-    extended: true
+  extended: true,
 }));
 app.use(errorHandler());
 app.use(session({
-    secret: 'keyboard cat',
-    resave: false,
-    saveUninitialized: false
+  secret: 'keyboard cat',
+  resave: false,
+  saveUninitialized: false,
 }));
 app.use(passport.initialize());
 app.use(passport.session());
 
 // Passport configuration
 require('./auth');
+
 app.get('/', routes.site.index);
 app.get('/login', routes.site.loginForm);
 app.post('/login', routes.site.login);
@@ -77,50 +80,50 @@ app.post('/provider/v1.0/user/devices/action', routes.user.action);
 app.post('/provider/v1.0/user/unlink', routes.user.unlink);
 
 httpsServer.listen(config.https.port);
-debug("HTTPS server started on port %s", config.https.port);
+debug('HTTPS server started on port %s', config.https.port);
 
 const subscriptions = [];
-global.devices.forEach(device => {
-    device.client = client;
-    const complexStateQueryTopic = device.data.complexState.query;
-    if (complexStateQueryTopic) {
-            subscriptions.push({
-                deviceId: device.data.id,
-                topic: complexStateQueryTopic
-            });
-    }
-    device.data.capabilities.forEach(capability => {
-        const queryTopic = capability.state.query || false;
-        if (queryTopic) {
-            subscriptions.push({
-                deviceId: device.data.id,
-                topic: queryTopic,
-                capabilityType: capability.type
-            });
-        }
+global.devices.forEach((device) => {
+  device.client = client;
+  const complexStateQueryTopic = device.data.complexState.query;
+  if (complexStateQueryTopic) {
+    subscriptions.push({
+      deviceId: device.data.id,
+      topic: complexStateQueryTopic,
     });
+  }
+  device.data.capabilities.forEach((capability) => {
+    const queryTopic = capability.state.query || false;
+    if (queryTopic) {
+      subscriptions.push({
+        deviceId: device.data.id,
+        topic: queryTopic,
+        capabilityType: capability.type,
+      });
+    }
+  });
 });
 
 client.on('connect', () => {
-    client.subscribe(subscriptions.map(pair => pair.topic), { "rh": true });
-    debug("MQTT client connected")
+  client.subscribe(subscriptions.map(pair => pair.topic), { rh: true });
+  debug('MQTT client connected');
 });
 client.on('offline', () => {
-    debug("MQTT client disconnected")
+  debug('MQTT client disconnected');
 });
 client.on('message', (topic, message) => {
-    debug("MQTT message received on topic '" + topic + "': " + message);
-    const subscription = subscriptions.find(sub => topic.toLowerCase() === sub.topic.toLowerCase());
-    if (!subscription) return;
-    const device = global.devices.find(device => device.data.id == subscription.deviceId);
-    if (subscription.capabilityType) {
-        device.updateState(
+  debug(`MQTT message received on topic '${topic}': ${message}`);
+  const subscription = subscriptions.find(sub => topic.toLowerCase() === sub.topic.toLowerCase());
+  if (!subscription) return;
+  const device = global.devices.find(device => device.data.id == subscription.deviceId);
+  if (subscription.capabilityType) {
+    device.updateState(
             subscription.capabilityType,
-            message.toString().toUpperCase()
+            message.toString().toUpperCase(),
         );
-    } else {
-        device.updateComplexState(message);
-    }
+  } else {
+    device.updateComplexState(message);
+  }
 });
 
 module.exports = app;
