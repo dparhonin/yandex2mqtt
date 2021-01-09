@@ -1,4 +1,4 @@
-const debug = require('debug')('y2m-device');
+const debug = require('debug')('y2m.device');
 
 // При сохранении конфигурации HA сохраняет её в Latin1, кодируя все все русские символы в виде, например:
 // Комната -> \u041a\u043e\u043c\u043d\u0430\u0442\u0430
@@ -38,45 +38,61 @@ function convertYandexValueToString(val, capabilityType, instance) {
   }
 }
 
-function convertToYandexValue(val, capabilityType, instance) {
-  let capType = capabilityType;
-  if (capType.startsWith('devices.capabilities.')) {
-    capType = capType.slice(21);
-  }
-  switch (capType) {
-    case 'on_off': {
-      if (val == null) return false;
-      val = `${val}`;
-      switch (val.toLowerCase()) {
-        case 'true':
-        case 'ON':
-        case '1':
-          return true;
-        default:
-          return false;
+function convertToYandexValue(val, type, instance) {
+  if (type.startsWith('devices.capabilities.')) {
+    const capType = type.slice(21);
+    switch (capType) {
+      case 'on_off': {
+        if (val == null) return false;
+        val = `${val}`;
+        switch (val.toLowerCase()) {
+          case 'true':
+          case 'ON':
+          case '1':
+            return true;
+          default:
+            return false;
+        }
+      }
+      case 'range': {
+        if (val == null) return 0.0;
+        try {
+          return parseFloat(val);
+        } catch (err) {
+          debug(`Cannot parse the range state value: ${val}`);
+          return 0.0;
+        }
+      }
+      case 'color_setting': {
+        return val;
+      }
+      case 'mode': {
+        return val;
+      }
+      case 'toggle': {
+        return val;
+      }
+      default: {
+        debug(`Unsupported capability type: ${type}`);
+        return val;
       }
     }
-    case 'range': {
-      if (val == null) return 0.0;
-      try {
-        return parseFloat(val);
-      } catch (err) {
-        debug(`Cannot parse the range state value: ${val}`);
-        return 0.0;
+  } else if (type.startsWith('devices.properties.')) {
+    const propType = type.slice(19);
+    switch (propType) {
+      case 'float': {
+        if (val == null) return 0.0;
+        try {
+          return parseFloat(val);
+        } catch (err) {
+          debug(`Cannot parse the float value: ${val}`);
+          return 0.0;
+        }
       }
-    }
-    case 'color_setting': {
-      return val;
-    }
-    case 'mode': {
-      return val;
-    }
-    case 'toggle': {
-      return val;
-    }
-    default: {
-      debug(`Unsupported capability type: ${capabilityType}`);
-      return val;
+      default: {
+        debug(`Unsupported property type: ${type}`);
+        return val;
+      }
     }
   }
 }
@@ -91,6 +107,7 @@ class device {
       room: fixEncoding(options.room) || '',
       type: options.type || 'devices.types.light',
       capabilities: options.capabilities,
+      properties: options.properties,
       complexState: options.complexState || {},
     };
     global.devices.push(this);
@@ -112,6 +129,16 @@ class device {
       capDef.parameters = capability.parameters;
       definition.capabilities.push(capDef);
     });
+    if (this.data.properties) {
+      definition.properties = [];
+      this.data.properties.forEach((property) => {
+        const propDef = {};
+        propDef.type = property.type;
+        propDef.retrievable = property.retrievable;
+        propDef.parameters = property.parameters;
+        definition.properties.push(propDef);
+      });
+    }
     return definition;
   }
 
@@ -128,6 +155,21 @@ class device {
       capState.state.value = capability.state.value;
       state.capabilities.push(capState);
     });
+    if (this.data.properties) {
+      state.properties = [];
+      this.data.properties.forEach((property) => {
+        const propState = {};
+        propState.type = property.type;
+        if (property.state === undefined) {
+          propState.state = {};
+          propState.state.instance = property.parameters.instance;
+          propState.state.value = 0;
+        } else {
+          propState.state = property.state;
+        }
+        state.properties.push(propState);
+      });
+    }
     return state;
   }
 
@@ -214,7 +256,7 @@ class device {
         if (!capability.state.query) {
           const val = complexState[capability.state.instance];
           if (val !== undefined) {
-            debug(`-- complexState[${capability.state.instance}]=${val}`);
+            debug(`-- capability[${capability.state.instance}]=${val}`);
             capability.state.value = convertToYandexValue(
               val,
               capability.type,
@@ -223,6 +265,21 @@ class device {
           }
         }
       });
+      if (this.data.properties) {
+        this.data.properties.forEach((property) => {
+          const val = complexState[property.parameters.instance];
+          if (val !== undefined) {
+            debug(`-- property[${property.parameters.instance}]=${val}`);
+            property.state = {};
+            property.state.instance = property.parameters.instance;
+            property.state.value = convertToYandexValue(
+              val,
+              property.type,
+              property.state.instance,
+            );
+          }
+        });
+      }
     } catch (err) {
       debug(`Cannot parse the complex state string "${complexStateStr}": ${err}`);
     }
