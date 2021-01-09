@@ -79,6 +79,7 @@ module.exports.action = [
                     device.setState(
                         payloadCapability.type,
                         payloadCapability.state.value,
+                        payloadCapability.state.relative || false,
                     ),
                 );
       });

@@ -136,13 +136,22 @@ class device {
   }
 
   // Кешируем значение, переданное нам Яндексом, и пропихиваем его в MQTT
-  setState(type, val) {
+  setState(type, val, relative) {
     let mqttVal;
     let topic;
     let instance;
     try {
       const capability = this.findCapability(type);
-      capability.state.value = val;
+      if (relative) {
+        debug(`*** Relative: ${capability.state.value} += ${val}`);
+        if (capability.state.value == null) {
+          capability.state.value = 50;
+        }
+        capability.state.value += val;
+      } else {
+        debug(`*** Absolute: ${capability.state.value} = ${val}`);
+        capability.state.value = val;
+      }
       topic = capability.state.publish || false;
       instance = capability.state.instance;
       mqttVal = convertValue(capability.state.mappingRef, `${val}`);
@@ -215,7 +224,7 @@ class device {
         }
       });
     } catch (err) {
-      debug(`Cannot parse the complex state string: ${complexStateStr}`);
+      debug(`Cannot parse the complex state string "${complexStateStr}": ${err}`);
     }
   }
 }

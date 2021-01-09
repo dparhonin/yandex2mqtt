@@ -105,6 +105,7 @@ global.devices.forEach((device) => {
 });
 
 client.on('connect', () => {
+  debug(`Creating MQTT subscriptions:\n${subscriptions.map(pair => pair.topic)}`);
   client.subscribe(subscriptions.map(pair => pair.topic), { rh: true });
   debug('MQTT client connected');
 });

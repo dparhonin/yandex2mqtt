@@ -1,17 +1,17 @@
 module.exports = {
-  debug: '',
+  debug: 'y2m.*',
   db_path: './loki.json',
 
   mqtt: {
-    host: 'localhost',
+    host: '192.168.1.132',
     port: 1883,
-    user: '',
-    password: '',
+    user: 'mqtt-writer',
+    password: '***REMOVED***',
   },
 
   https: {
-    privateKey: '...',
-    certificate: '...',
+    privateKey: '/mnt/winshare/privkey.pem',
+    certificate: '/mnt/winshare/fullchain.pem',
     port: 8443,
   },
 
@@ -19,8 +19,8 @@ module.exports = {
     {
       id: '1',
       name: 'Yandex',
-      clientId: '...',
-      clientSecret: '...',
+      clientId: 'yandex-manoliHome',
+      clientSecret: '***REMOVED***',
       isTrusted: false,
     },
   ],
@@ -28,8 +28,8 @@ module.exports = {
   users: [
     {
       id: '1',
-      username: '...',
-      password: '...',
+      username: 'admin',
+      password: 'admin',
       name: 'Administrator',
     },
   ],
@@ -48,21 +48,18 @@ module.exports = {
       name: 'Сервант',
       room: 'Кухня',
       type: 'devices.types.switch',
-      mqtt: [
-        {
-          type: 'devices.capabilities.on_off',
-          publish: 'zigbee2mqtt/0x00158d0003xxxxxx/set',
-          query: 'zigbee2mqtt/0x00158d0003xxxxxx/set',
-          valueMapRef: 'default',
-        },
-      ],
       capabilities: [
         {
           type: 'devices.capabilities.on_off',
           retrievable: true,
+          parameters: {
+            split: false,
+          },
           state: {
             instance: 'on',
-            value: true,
+            publish: 'yandex/devices/servantBacklight/set',
+            query: 'yandex/devices/servantBacklight/get',
+            mappingRef: 'default',
           },
         },
       ],
@@ -71,23 +68,22 @@ module.exports = {
       name: 'Свет',
       room: 'Прихожая',
       type: 'devices.types.light',
-      mqtt: [
-        {
-          type: 'devices.capabilities.on_off',
-          publish: 'yandex/devices/hallCeilingLamp/set',
-          query: 'yandex/devices/hallCeilingLamp/set',
-        },
-      ],
       capabilities: [
         {
           type: 'devices.capabilities.on_off',
           retrievable: true,
+          parameters: {
+            split: false,
+          },
           state: {
             instance: 'on',
-            value: true,
           },
         },
       ],
+      complexState: {
+        publish: 'yandex/devices/hallCeilingLamp/set',
+        query: 'yandex/devices/hallCeilingLamp/get',
+      },
     },
     {
       name: 'Свет',
@@ -102,7 +98,6 @@ module.exports = {
           },
           state: {
             instance: 'on',
-            value: false,
           },
         },
         {
@@ -119,21 +114,6 @@ module.exports = {
           },
           state: {
             instance: 'brightness',
-            value: 100,
-          },
-        },
-        {
-          type: 'devices.capabilities.color_setting',
-          retrievable: true,
-          parameters: {
-            temperature_k: {
-              min: 2700,
-              max: 6500,
-            },
-          },
-          state: {
-            instance: 'temperature_k',
-            value: 4500,
           },
         },
       ],
@@ -143,19 +123,41 @@ module.exports = {
       },
     },
     {
-      name: 'Телевизор',
+      name: 'Ночник',
       room: 'Спальня',
-      type: 'devices.types.media_device.tv',
+      type: 'devices.types.light',
       capabilities: [
         {
           type: 'devices.capabilities.on_off',
-          retrievable: false,
+          retrievable: true,
+          parameters: {
+            split: false,
+          },
           state: {
             instance: 'on',
-            publish: 'yandex/devices/tvset/set',
+          },
+        },
+        {
+          type: 'devices.capabilities.range',
+          retrievable: true,
+          parameters: {
+            instance: 'brightness',
+            random_access: true,
+            range: {
+              min: 0,
+              max: 100,
+            },
+            unit: 'unit.percent',
+          },
+          state: {
+            instance: 'brightness',
           },
         },
       ],
+      complexState: {
+        publish: 'yandex/devices/hallNightLight/set',
+        query: 'yandex/devices/hallNightLight/get',
+      },
     },
   ],
 };
