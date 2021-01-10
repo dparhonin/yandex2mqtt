@@ -179,7 +179,7 @@ class device {
   }
 
   initState(capability) {
-    const state = {};
+    const state = capability.state || {}; // There can be mqtt publish/query topics configured
     const capType = capability.type.slice(21);
     switch (capType) {
       case 'on_off': {
