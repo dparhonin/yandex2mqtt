@@ -110,6 +110,9 @@ class device {
       properties: options.properties,
       complexState: options.complexState || {},
     };
+    this.data.capabilities.forEach((capability) => {
+      capability.state = this.initState(capability);
+    });
     global.devices.push(this);
   }
 
@@ -150,9 +153,11 @@ class device {
     this.data.capabilities.forEach((capability) => {
       const capState = {};
       capState.type = capability.type;
-      capState.state = {};
-      capState.state.instance = capability.state.instance;
-      capState.state.value = capability.state.value;
+      if (capability.state === undefined) {
+        capState.state = this.initState(capability);
+      } else {
+        capState.state = capability.state;
+      }
       state.capabilities.push(capState);
     });
     if (this.data.properties) {
@@ -169,6 +174,33 @@ class device {
         }
         state.properties.push(propState);
       });
+    }
+    return state;
+  }
+
+  initState(capability) {
+    const state = {};
+    const capType = capability.type.slice(21);
+    switch (capType) {
+      case 'on_off': {
+        state.instance = 'on';
+        state.value = false;
+        break;
+      }
+      case 'mode': {
+        state.instance = capability.parameters.instance;
+        state.value = capability.parameters.modes[0].value;
+        break;
+      }
+      case 'range': {
+        state.instance = capability.parameters.instance;
+        state.value = capability.parameters.range.min;
+        break;
+      }
+      default: {
+        debug(`Unsupported capability type: ${capability.type}`);
+        break;
+      }
     }
     return state;
   }

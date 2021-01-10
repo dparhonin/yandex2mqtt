@@ -60,10 +60,6 @@ module.exports = {
         {
           type: 'devices.capabilities.on_off',
           retrievable: true,
-          state: {
-            instance: 'on',
-            value: true,
-          },
         },
       ],
     },
@@ -82,10 +78,6 @@ module.exports = {
         {
           type: 'devices.capabilities.on_off',
           retrievable: true,
-          state: {
-            instance: 'on',
-            value: true,
-          },
         },
       ],
     },
@@ -104,12 +96,54 @@ module.exports = {
         {
           type: 'devices.capabilities.on_off',
           retrievable: true,
-          state: {
-            instance: 'on',
-            value: true,
+        },
+      ],
+    },
+    {
+      name: 'Увлажнитель',
+      room: 'Спальня',
+      type: 'devices.types.humidifier',
+      capabilities: [
+        {
+          type: 'devices.capabilities.on_off',
+          retrievable: true,
+        },
+        {
+          type: 'devices.capabilities.mode',
+          retrievable: true,
+          parameters: {
+            instance: 'fan_speed',
+            modes: [
+              { value: 'low' },
+              { value: 'medium' },
+              { value: 'high' },
+              { value: 'auto' },
+            ],
           },
         },
       ],
+      properties: [
+        {
+          type: 'devices.properties.float',
+          retrievable: true,
+          parameters: {
+            instance: 'temperature',
+            unit: 'unit.temperature.celsius',
+          },
+        },
+        {
+          type: 'devices.properties.float',
+          retrievable: true,
+          parameters: {
+            instance: 'humidity',
+            unit: 'unit.percent',
+          },
+        },
+      ],
+      complexState: {
+        publish: 'yandex/devices/bedroomHumidifier/set',
+        query: 'yandex/devices/bedroomHumidifier/get',
+      },
     },
   ],
 };
