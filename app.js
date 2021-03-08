@@ -27,8 +27,9 @@ const credentials = {
 const httpsServer = https.createServer(credentials, app);
 global.devices = [];
 
-if (config.devices) {
-  config.devices.forEach(opts => new device(opts));
+if (config.devices_path) {
+  const devices=require(config.devices_path)
+  devices.forEach(opts => new device(opts));
 }
 
 global.valueMappings = config.valueMappings;

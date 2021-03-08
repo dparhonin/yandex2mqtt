@@ -6,3 +6,7 @@ yarn-error.log
 /config_private.js
 /config_public.js
 /config_local.js
+/devices_local.json
+/devices_private.json
+/devices_public.json
+private/
