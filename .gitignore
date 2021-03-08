@@ -10,3 +10,4 @@ yarn-error.log
 /devices_private.json
 /devices_public.json
 private/
+backup/
