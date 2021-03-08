@@ -1,5 +1,3 @@
-
-
 const express = require('express');
 const debug = require('debug')('y2m.app');
 const ejs = require('ejs');
