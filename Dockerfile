@@ -8,8 +8,8 @@ RUN apk add --update --no-cache curl jq nodejs npm && \
   npm install --unsafe-perm -g pm2 && \
   npm install --unsafe-perm
   
-RUN npm install express ejs cookie-parser errorhandler \
-  express-session passport
+# Setup all NodeJS dependencies from package.json
+RUN npm install
 
 ADD run.sh /y2m/
 ADD *.js /y2m/
