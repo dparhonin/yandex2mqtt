@@ -1,17 +1,17 @@
 module.exports = {
-  debug: 'y2m.*',
+  debug: '',
   db_path: './loki.json',
 
   mqtt: {
-    host: '192.168.1.132',
+    host: 'localhost',
     port: 1883,
-    user: 'mqtt-writer',
-    password: '***REMOVED***',
+    user: '',
+    password: '',
   },
 
   https: {
-    privateKey: './private/privkey.pem',
-    certificate: './private/fullchain.pem',
+    privateKey: '/path/to/privkey.pem',
+    certificate: '/path/to/fullchain.pem',
     port: 8443,
   },
 
@@ -19,8 +19,8 @@ module.exports = {
     {
       id: '1',
       name: 'Yandex',
-      clientId: 'yandex-manoliHome',
-      clientSecret: '***REMOVED***',
+      clientId: 'yandex-client-id',
+      clientSecret: 'client-secret',
       isTrusted: false,
     },
   ],
@@ -43,5 +43,5 @@ module.exports = {
     },
   },
 
-  devices_path: "./devices.json",
+  devices_path: "/share/yandex2mqtt/devices.json",
 };
