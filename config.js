@@ -1,6 +1,7 @@
 module.exports = {
   debug: '',
   db_path: './loki.json',
+  devices_path: "./devices.json",
 
   mqtt: {
     host: 'localhost',
@@ -42,6 +43,4 @@ module.exports = {
       OFF: 'false',
     },
   },
-
-  devices_path: "/share/yandex2mqtt/devices.json",
 };

@@ -8,18 +8,20 @@ RUN apk add --update --no-cache curl jq nodejs npm && \
   npm install --unsafe-perm -g pm2 && \
   npm install --unsafe-perm
   
+WORKDIR /y2m
+
+COPY run.sh /y2m/
+COPY *.js /y2m/
+COPY *.json /y2m/
+COPY auth/* /y2m/auth/
+COPY db/* /y2m/db/
+COPY routes/* /y2m/routes/
+COPY utils/* /y2m/utils/
+COPY views/* /y2m/views/
+
 # Setup all NodeJS dependencies from package.json
 RUN npm install
-
-ADD run.sh /y2m/
-ADD *.js /y2m/
-ADD *.json /y2m/
-ADD auth/* /y2m/auth/
-ADD db/* /y2m/db/
-ADD routes/* /y2m/routes/
-ADD utils/* /y2m/utils/
-ADD views/* /y2m/views/
+RUN dos2unix run.sh
 
 RUN ["chmod", "a+x", "/y2m/run.sh"]
-WORKDIR /y2m
 CMD [ "./run.sh" ]
