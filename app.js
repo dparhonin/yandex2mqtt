@@ -27,14 +27,21 @@ global.devices = [];
 
 if (config.devices_path) {
   try {
-    const devices=require(config.devices_path)
+    const devices = require(config.devices_path)
     devices.forEach(opts => new device(opts));
-  } catch(err) {
+  } catch (err) {
     console.error(`Cannot read devices info: ${err}`)
   }
 }
 
-global.valueMappings = config.valueMappings;
+global.valueMappings = {
+  default: {
+    true: 'ON',
+    false: 'OFF',
+    ON: 'true',
+    OFF: 'false'
+  }
+};
 
 const client = mqtt.connect(`mqtt://${config.mqtt.host}`, {
   port: config.mqtt.port,
@@ -122,9 +129,9 @@ client.on('message', (topic, message) => {
   const device = global.devices.find(device => device.data.id == subscription.deviceId);
   if (subscription.capabilityType) {
     device.updateState(
-            subscription.capabilityType,
-            message.toString().toUpperCase(),
-        );
+      subscription.capabilityType,
+      message.toString().toUpperCase(),
+    );
   } else {
     device.updateComplexState(message);
   }
